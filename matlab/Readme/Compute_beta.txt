@@ -109,12 +109,6 @@ Results:  [178051, 84, 169, 68, 42, 48, 7,  2,  0,  275, 0, 0, 192, 329, 0, 80, 
 
 
 
-
-
-
-
-
-
 Matlab, amikor szet vannak szedve a valtozok
     NI = result_avg(28);       % New cases
     I1 = result_avg(3);        % Presymptomatic people

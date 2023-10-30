@@ -1,12 +1,5 @@
-#ifdef MATLAB
 #include "mex.hpp"
 #include "mexAdapter.hpp"
-#endif
-#ifdef PYTHON
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#endif
-
 #include <cstdlib>
 #include <cstring>
 #include <random>
@@ -126,7 +119,6 @@ public:
     }
 };
 
-#ifdef MATLAB
 class MexFunction : public matlab::mex::Function {
 private:
   std::shared_ptr<matlab::engine::MATLABEngine> matlabPtr = getEngine();
@@ -202,19 +194,3 @@ public:
         std::vector<matlab::data::Array>({factory.createScalar(str)}));
   }
 };
-#endif
-
-#ifdef PYTHON
-namespace py = pybind11;
-
-PYBIND11_MODULE(mexPanSim, m) {
-    py::class_<SimulatorInterface>(m, "SimulatorInterface")
-        .def(py::init<>())
-        .def("initSimulation", [](SimulatorInterface &self, std::vector<std::string> options) {
-            self.initSimulation(options.data(), options.size());
-        })
-        .def("runForDay", [](SimulatorInterface &self, std::vector<std::string> options) -> std::vector<unsigned int> {
-            return self.runForDay(options.data(), options.size());
-        });
-}
-#endif

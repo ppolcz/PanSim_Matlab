@@ -16,3 +16,8 @@ matlab/mexPanSim.mexa64
 
 # Polcz:
 thrust
+
+# Matlab's autosaved files and compiled binaries
+*.asv
+*.slxc
+*/slprj/*
