@@ -1,4 +1,4 @@
-function [f,h,hvar,J] = mf_epid_ode_model_8comp(Np)
+function [f,h,hvar,J] = ode_model_8comp(Np)
 arguments
     Np = 9709786
 end
@@ -13,7 +13,7 @@ end
 import casadi.*
 
 [~,np] = Epid_Par.GetK;
-[s,p,~,p_Cas] = Epid_Par.Symbolic;
+[s,p,~,p_Cas] = Epid_Par.Symbolic_New;
 
 Cnt(0);
 % State variables:
@@ -36,9 +36,9 @@ for xi = x.'
 end
 
 % Osszevont parameterek
-% hat_rho = 1/(1/s.zeta + s.gamma/s.rhoI + (1-s.gamma)/s.rhoA);
-% hat_delta = (1/s.zeta + s.gamma/s.rhoI + s.delta*(1-s.gamma)/s.rhoA) * hat_rho;
-% hat_eta = s.gamma * s.eta;
+% hat_rho = 1/(1/s.tauP + s.pI/s.tauI + (1-s.pI)/s.tauA);
+% hat_delta = (1/s.tauP + s.pI/s.tauI + s.qA*(1-s.pI)/s.tauA) * hat_rho;
+% hat_eta = s.pI * s.pH;
 
 % Time-dependent parameter: Nr. of vaccinated per day
 nu = sym('ImGainRate');
@@ -50,16 +50,16 @@ beta_Cas = SX.sym('beta');
 omega = sym('ImLossRate');
 omega_Cas = SX.sym('w');
 
-Infectious = P + I + s.delta*A + 0.1*H;
+Infectious = P + I + s.qA*A + 0.1*H;
 
 dS = -beta*Infectious*S/Np - nu*S + omega*R;
-dL = beta*Infectious*S/Np - s.alpha*L;
-dP = s.alpha*L - s.zeta*P;
-dI = s.gamma*s.zeta*P - s.rhoI*I;
-dA = (1-s.gamma)*s.zeta*P - s.rhoA*A;
-dH = s.rhoI*s.eta*I - s.lambda*H;
-dD = s.mu*s.lambda*H;
-dR = s.rhoI*(1-s.eta)*I + s.rhoA*A + (1-s.mu)*s.lambda*H + nu*S - omega*R;
+dL = beta*Infectious*S/Np - s.tauL*L;
+dP = s.tauL*L - s.tauP*P;
+dI = s.pI*s.tauP*P - s.tauI*I;
+dA = (1-s.pI)*s.tauP*P - s.tauA*A;
+dH = s.tauI*s.pH*I - s.tauH*H;
+dD = s.pD*s.tauH*H;
+dR = s.tauI*(1-s.pH)*I + s.tauA*A + (1-s.pD)*s.tauH*H + nu*S - omega*R;
 
 f_sym = [dS dL dP dI dA dH dD dR].';
 assert(double(simplify(sum(f_sym))) == 0);
@@ -72,9 +72,9 @@ J.Rt = Cnt;
 
 h_sym = [
     L + P + I + A + H
-    beta * (P + I + s.delta*A) * S / Np
-    beta * (1/s.zeta + s.gamma/s.rhoI + s.delta*(1-s.gamma)/s.rhoA)
-    beta * (1/s.zeta + s.gamma/s.rhoI + s.delta*(1-s.gamma)/s.rhoA) * S / Np
+    beta * (P + I + s.qA*A) * S / Np
+    beta * (1/s.tauP + s.pI/s.tauI + s.qA*(1-s.pI)/s.tauA)
+    beta * (1/s.tauP + s.pI/s.tauI + s.qA*(1-s.pI)/s.tauA) * S / Np
     ];
 
 matlabFunction(f_sym,'File','Fn_SLPIAHDR_ode','Vars',{x,p,beta,nu,omega});

@@ -8,8 +8,6 @@ clear all
 Np = 179500;
 % Np = 178746;
 
-Conservativity_Mtp = 0.95;
-
 %% Load parameters
 
 Q = readtable("matlab/Parameters/Par_HUN_2023-12-19_JN1.xlsx", ...
@@ -18,7 +16,8 @@ Q = readtable("matlab/Parameters/Par_HUN_2023-12-19_JN1.xlsx", ...
 P = Epid_Par.Get(Q);
 Q("Future",:) = [];
 
-Start_Date = datetime(2020,08,15);
+Start_Date = datetime(2020,09,23);
+End_Date = Start_Date + 300;
 End_Date = Q("Delta",:).Date;
 P(P.Date < Start_Date,:) = [];
 
@@ -207,8 +206,8 @@ PanSim_args = load_PanSim_args;
 
 %%%
 % Create simulator object
-dir = fileparts(mfilename('fullpath'));
-obj = mexPanSim_wrap(str2fun([dir '/mexPanSim'])); % str2fun allows us to use the full path, so the mex need not be on our path
+DIR = fileparts(mfilename('fullpath'));
+obj = mexPanSim_wrap(str2fun([DIR '/mexPanSim'])); % str2fun allows us to use the full path, so the mex need not be on our path
 obj.initSimulation(PanSim_args);
 
 simout = obj.runForDay(string(PM(1,:)));

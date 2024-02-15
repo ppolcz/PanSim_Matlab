@@ -1,32 +1,48 @@
-function [T,Rstr_Vars] = load_policy_measures(args)
+function T = load_policy_measures(args)
 arguments
-    args.filename = 'Data/data2.txt'
-    args.savename = 'Data/Policy_measures.mat'
-    args.reset = true
+    args.filename = ''
+    args.savename = ''
+    args.reset = false
 end
 
-dir = string(fileparts(mfilename("fullpath"))) + filesep;
+if isempty(args.filename) || isempty(args.savename)
+    fp = pcz_mfilename(mfilename('fullpath'));
 
-% Restriction abbreviations
-Rstr_Vars = policy_varnames;
+    Idx = find(strcmp(fp.dirs,'matlab'));
+    DIR_Data = [filesep , fullfile(fp.dirs{end:-1:Idx},'Data')];
+    
+    if isempty(args.filename)
+        args.filename = fullfile(DIR_Data,'data2.txt');
+    end
+    if isempty(args.savename)
+        args.savename = fullfile(DIR_Data,'Policy_measures.mat');
+    end
+
+    T = hp.load_policy_measures('filename',args.filename,'savename',args.savename);
+    T(isnan(T.Pmx),:) = [];
+    
+    return
+end
+
+%%
 
 % Looking for an already computed table
-if exist(dir + args.savename,'file') && ~args.reset
-    load(dir + args.savename,'T')
+if exist(args.savename,'file') && ~args.reset
+    load(args.savename,'T')
     disp("Policy measures loaded from " + args.savename)
     return
 end
 
 % Read policy measures, which is a cell array.
-matrix = readMatrixFromFile(dir + args.filename);
+matrix = ps.readMatrixFromFile(args.filename);
 
 % The cell array is converted to a matlab table
-T = cell2table(matrix,'VariableNames',[Rstr_Vars,"Week","Beta"]);
+T = cell2table(matrix,'VariableNames',[Vn.policy,"Week","Beta"]);
 T.Week = categorical(T.Week);
 Weeks = categories(T.Week);
 
 % Trim variables
-for var = Rstr_Vars
+for var = Vn.policy
     T.(var) = categorical(strtrim(T.(var)));
 end
 
@@ -69,7 +85,7 @@ T      TP            PL              CF               SO          QU          MA
 	Contains 216 rows.
 %}
 
-T = quantify_policy(T);
+T = hp.quantify_policy(T);
 
 T = addvars(T,true(height(T),1),'NewVariableNames',"Intelligent",'Before','Beta');
 
@@ -80,7 +96,7 @@ T.Intelligent(T.QU_Val == 0 & T.TP_Val > 1,:) = false;
 % zárjuk
 T.Intelligent(T.SO_Val > 0 & T.PL_Val == 0,:) = false;
 
-I = T(:,Rstr_Vars + "_Val");
+I = T(:,Vn.policy + "_Val");
 I.MA_Val = 1 - I.MA_Val;
 I = I.Variables;
 
@@ -101,6 +117,6 @@ Idx = find(T.Intelligent);
 Pmx = 1:numel(Idx);
 T.Pmx(Idx) = Pmx;
 
-save(dir + args.savename,'T')
+save(args.savename,'T')
 
 end

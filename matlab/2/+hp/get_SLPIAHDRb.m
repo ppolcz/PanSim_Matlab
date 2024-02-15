@@ -1,8 +1,8 @@
 function [x,beta,NI] = get_SLPIAHDRb(simout,Np,args)
 arguments
     simout (:,49)
-    Np = 179500
-    args.ImmuneIdx = 1;
+    Np = C.Np
+    args.ImmuneIdx = C.TrRate_IDX;
 end
 %%
 %
